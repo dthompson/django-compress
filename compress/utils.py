@@ -44,13 +44,13 @@ def needs_update(output_file, source_files, verbosity=0):
     """
 
     version = get_version(source_files)
-    
+
     on = get_output_filename(output_file, version)
     compressed_file_full = media_root(on)
 
     if not os.path.exists(compressed_file_full):
         return True, version
-        
+
     update_needed = getattr(get_class(settings.COMPRESS_VERSIONING)(), 'needs_update')(output_file, source_files, version)
     return update_needed
 
@@ -58,7 +58,7 @@ def media_root(filename):
     """
     Return the full path to ``filename``. ``filename`` is a relative path name in MEDIA_ROOT
     """
-    return os.path.join(django_settings.MEDIA_ROOT, filename)
+    return os.path.join(django_settings.COMPRESS_MEDIA_ROOT, filename)
 
 def media_url(url, prefix=None):
     if prefix:
@@ -97,7 +97,7 @@ def get_output_filename(filename, version):
 def get_version(source_files, verbosity=0):
     version = getattr(get_class(settings.COMPRESS_VERSIONING)(), 'get_version')(source_files)
     return version
-    
+
 def get_version_from_file(path, filename):
     regex = re.compile(r'^%s$' % (get_output_filename(settings.COMPRESS_VERSION_PLACEHOLDER.join([re.escape(part) for part in filename.split(settings.COMPRESS_VERSION_PLACEHOLDER)]), r'([A-Za-z0-9]+)')))
     for f in os.listdir(path):
@@ -105,19 +105,19 @@ def get_version_from_file(path, filename):
         if result and result.groups():
             return result.groups()[0]
 
-def remove_files(path, filename, verbosity=0):    
+def remove_files(path, filename, verbosity=0):
     regex = re.compile(r'^%s$' % (os.path.basename(get_output_filename(settings.COMPRESS_VERSION_PLACEHOLDER.join([re.escape(part) for part in filename.split(settings.COMPRESS_VERSION_PLACEHOLDER)]), r'[A-Za-z0-9]+'))))
     if os.path.exists(path):
         for f in os.listdir(path):
             if regex.match(f):
                 if verbosity >= 1:
                     print "Removing outdated file %s" % f
-        
+
                 os.unlink(os.path.join(path, f))
 
 def filter_common(obj, verbosity, filters, attr, separator, signal):
     output = concat(obj['source_filenames'], separator)
-    
+
     filename = get_output_filename(obj['output_filename'], get_version(obj['source_filenames']))
 
     if settings.COMPRESS_VERSION:
