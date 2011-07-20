@@ -15,6 +15,7 @@ def render_common(template_name, obj, filename, version):
 
     context = obj.get('extra_context', {})
     prefix = context.get('prefix', None)
+
     if filename.startswith('http://'):
         context['url'] = filename
     else:
@@ -87,9 +88,9 @@ class CompressedJSNode(template.Node):
 
             if settings.COMPRESS_AUTO:
                 u, version = needs_update(js['output_filename'],
-                    js['source_filenames'])
+                                          js['source_filenames'])
                 if u:
-                    filter_js(js)
+                    filter_js(js, version)
             else:
                 filename_base, filename = os.path.split(js['output_filename'])
                 path_name = media_root(filename_base)

@@ -2,6 +2,7 @@ from django.core.management.base import NoArgsCommand
 from optparse import make_option
 
 from django.conf import settings
+import time
 
 class Command(NoArgsCommand):
     option_list = NoArgsCommand.option_list + (
@@ -11,14 +12,14 @@ class Command(NoArgsCommand):
     args = ''
 
     def handle_noargs(self, **options):
-        
+
         force = options.get('force', False)
         verbosity = int(options.get('verbosity', 1))
 
         from compress.utils import needs_update, filter_css, filter_js
 
         for name, css in settings.COMPRESS_CSS.items():
-            u, version = needs_update(css['output_filename'], 
+            u, version = needs_update(css['output_filename'],
                 css['source_filenames'])
 
             if (force or u) or verbosity >= 2:
@@ -33,8 +34,9 @@ class Command(NoArgsCommand):
             if (force or u) or verbosity >= 2:
                 print
 
-        for name, js in settings.COMPRESS_JS.items():
-            u, version = needs_update(js['output_filename'], 
+        for name in settings.COMPRESS_JS_ORDER:
+            js = settings.COMPRESS_JS[name]
+            u, version = needs_update(js['output_filename'],
                 js['source_filenames'])
 
             if (force or u) or verbosity >= 2:
@@ -44,7 +46,7 @@ class Command(NoArgsCommand):
                 print "Version: %s" % version
 
             if force or u:
-                filter_js(js, verbosity)
+                filter_js(js, version, verbosity)
 
             if (force or u) or verbosity >= 2:
                 print

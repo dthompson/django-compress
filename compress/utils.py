@@ -115,7 +115,7 @@ def remove_files(path, filename, verbosity=0):
 
                 os.unlink(os.path.join(path, f))
 
-def filter_common(obj, verbosity, filters, attr, separator, signal):
+def filter_common(obj, verbosity, filters, attr, separator, signal, version=None):
     output = concat(obj['source_filenames'], separator)
 
     filename = get_output_filename(obj['output_filename'], get_version(obj['source_filenames']))
@@ -129,11 +129,21 @@ def filter_common(obj, verbosity, filters, attr, separator, signal):
     for f in filters:
         output = getattr(get_class(f)(verbose=(verbosity >= 2)), attr)(output)
 
+    #if(version is not None):
+    path_name = media_root("webroot/static/js/")
+    version = get_version_from_file(path_name, "webglviewer.r?.js")
+    output = output.replace("{{ webgljsfileversion }}", str(version))
+    version = get_version_from_file(path_name, "htmlviewer.r?.js")
+    output = output.replace("{{ htmljsfileversion }}", str(version))
+    version = get_version_from_file(path_name, "flashviewer.r?.js")
+    output = output.replace("{{ flashjsfileversion }}", str(version))
+
+
     save_file(filename, output)
     signal.send(None)
 
 def filter_css(css, verbosity=0):
     return filter_common(css, verbosity, filters=settings.COMPRESS_CSS_FILTERS, attr='filter_css', separator='', signal=css_filtered)
 
-def filter_js(js, verbosity=0):
-    return filter_common(js, verbosity, filters=settings.COMPRESS_JS_FILTERS, attr='filter_js', separator='', signal=js_filtered)
+def filter_js(js, version, verbosity=0):
+    return filter_common(js, verbosity, filters=settings.COMPRESS_JS_FILTERS, attr='filter_js', separator='', signal=js_filtered, version=version)
