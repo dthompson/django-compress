@@ -1,6 +1,7 @@
 import os
 import re
 import tempfile
+import gzip
 
 from django.conf import settings as django_settings
 from django.utils.http import urlquote
@@ -87,6 +88,9 @@ def save_file(filename, contents):
     fd = open(media_root(filename), 'wb+')
     fd.write(contents)
     fd.close()
+    fdgz = gzip.open(media_root(filename+".gz"), 'wb+')
+    fdgz.write(contents)
+    fdgz.close()
 
 def get_output_filename(filename, version):
     if settings.COMPRESS_VERSION and version is not None:
@@ -114,6 +118,10 @@ def remove_files(path, filename, verbosity=0):
                     print "Removing outdated file %s" % f
 
                 os.unlink(os.path.join(path, f))
+                try:
+                    os.unlink(os.path.join(path, f+".gz"))
+                except:
+                    pass
 
 def filter_common(obj, verbosity, filters, attr, separator, signal, version=None):
     output = concat(obj['source_filenames'], separator)
